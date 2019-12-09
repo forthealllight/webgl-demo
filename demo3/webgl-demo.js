@@ -37,9 +37,24 @@ function main() {
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
   gl.useProgram(shaderProgram);
   //开始绘制
-  a_Position = gl.getAttribLocation(shaderProgram,'a_Position')
-  gl.vertexAttrib3f(a_Position,0.0,0.0,0.0);
-  gl.drawArrays(gl.POINTS,0,1);
+  let vertices = new Float32Array([0.0,0.0,0.0,0.1,0.0,-0.1])
+  //创建缓冲区
+  let vertexBuffer = gl.createBuffer()
+  //将缓冲区对象绑定到目标
+  gl.bindBuffer(gl.ARRAY_BUFFER,vertexBuffer)
+  //向缓冲区对象写入数据
+  gl.bufferData(gl.ARRAY_BUFFER,vertices,gl.STATIC_DRAW)
+  let a_Position = gl.getAttribLocation(shaderProgram,'a_Position')
+  //将缓冲区对象分配给a_Position
+  gl.vertexAttribPointer(a_Position,2,gl.FLOAT,false,0,0)
+  //开启attribute变
+  gl.enableVertexAttribArray(a_Position);
+  gl.drawArrays(gl.POINTS,0,3)
+  
+
+
+
+
 }
 
 //
