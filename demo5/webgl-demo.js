@@ -18,25 +18,33 @@ function main() {
 
   const vsSource = `
     attribute vec4 a_Position;
+    uniform mat4 u_xformMatrix;
     void main() {
-      gl_Position = a_Position;
-      gl_PointSize = 10.0;
+      gl_Position = u_xformMatrix * a_Position;
     }
   `;
 
   // Fragment shader program
+  
   const fsSource = `
+    #ifdef GL_ES
+    precision mediump float;
+    #endif
+    varying lowp vec4 vColor;
+    uniform vec4 u_color;
     void main() {
-      gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+      gl_FragColor = u_color;
     }
   `;
+  
   const shaderProgram = initShaderProgram(gl, vsSource, fsSource)
   gl.clearColor(0.0, 0.0, 0.0, 1.0);  // Clear to black, fully opaque
   gl.clearDepth(1.0);                 // Clear everything
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+  gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
   gl.useProgram(shaderProgram);
   //开始绘制
-  let vertices = new Float32Array([0.0,0.0,0.0,0.1,0.0,-0.1])
+  let vertices = new Float32Array([0.0,0.5,-0.5,-0.5,0.5,-0.5])
   //创建缓冲区
   let vertexBuffer = gl.createBuffer()
   //将缓冲区对象绑定到目标
@@ -48,8 +56,19 @@ function main() {
   gl.vertexAttribPointer(a_Position,2,gl.FLOAT,false,0,0)
   //开启attribute变
   gl.enableVertexAttribArray(a_Position);
-  gl.drawArrays(gl.POINTS,0,3)
-  
+  //设置三角形的颜色
+  let u_color = gl.getUniformLocation(shaderProgram,'u_color');
+  let u_xformMatrix = gl.getUniformLocation(shaderProgram,'u_xformMatrix');
+  let translateMatrix = mat4.create(1);
+  gl.uniformMatrix4fv(u_xformMatrix,false,translateMatrix)
+  gl.uniform4f(u_color,1.0,1.0,1.0,1.0)
+  gl.drawArrays(gl.TRIANGLES,0,3)
+  //将平移距离传输给定点着色器
+  let Tx = 0.5,Ty=0.5,Tz=0.0;
+  mat4.translate(translateMatrix,translateMatrix,[Tx,Ty,Tz])
+  gl.uniformMatrix4fv(u_xformMatrix,false,translateMatrix)
+  gl.uniform4f(u_color,0.5,0.5,0.5,1.0)
+  gl.drawArrays(gl.TRIANGLES,0,3)
 }
 
 //
